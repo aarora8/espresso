@@ -183,6 +183,8 @@ def do_setup(package_data):
             "dataclasses",
             "hydra-core",
             "kaldi_io",
+            "k2",
+            "lhotse",
             "numpy",
             "regex",
             "sacrebleu>=1.4.12",
