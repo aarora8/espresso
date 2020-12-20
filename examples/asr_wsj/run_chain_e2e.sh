@@ -185,7 +185,7 @@ if [ ${stage} -le 6 ]; then
   log_file=$dir/log/train.log
   [ -f $dir/checkpoint_last.pt ] && log_file="-a $log_file"
   update_freq=1
-  CUDA_VISIBLE_DEVICES=$free_gpu speech_train.py data/chain_e2e --task speech_recognition_hybrid --seed 1 \
+  $cuda_cmd $log_file speech_train.py data/chain_e2e --task speech_recognition_hybrid --seed 1 --user-dir espresso \
     --log-interval $((200/ngpus/update_freq)) --log-format simple \
     --num-workers 0 --data-buffer-size 0 --max-tokens 120000 --batch-size 128 --curriculum 1 --empty-cache-freq 50 \
     --valid-subset $valid_subset --batch-size-valid 128 --ddp-backend no_c10d --update-freq $update_freq \
@@ -197,7 +197,7 @@ if [ ${stage} -le 6 ]; then
     --arch speech_tdnn_wsj --criterion lattice_free_mmi --num-targets $num_targets \
     --dropout 0.2 --kernel-sizes "[3]*6" --strides "[1]*5+[3]" --dilations "[1,1,1,3,3,3]" --num-layers 6 \
     --denominator-fst-path $tree_dir/den.fst --leaky-hmm-coefficient 1e-03 \
-    --max-source-positions 9999 --max-target-positions 9999 2>&1 | tee $log_file
+    --max-source-positions 9999 --max-target-positions 9999 || exit 1;
 fi
 
 if [ ${stage} -le 7 ]; then
