@@ -185,7 +185,7 @@ if [ ${stage} -le 6 ]; then
   log_file=$dir/log/train.log
   [ -f $dir/checkpoint_last.pt ] && log_file="-a $log_file"
   update_freq=1
-  $cuda_cmd $log_file speech_train.py data/chain_e2e --task speech_recognition_hybrid --seed 1 --user-dir espresso \
+  $cuda_cmd $log_file speech_train.py data/chain_e2e --task speech_recognition_hybrid --seed 1 \
     --log-interval $((200/ngpus/update_freq)) --log-format simple \
     --num-workers 0 --data-buffer-size 0 --max-tokens 120000 --batch-size 128 --curriculum 1 --empty-cache-freq 50 \
     --valid-subset $valid_subset --batch-size-valid 128 --ddp-backend no_c10d --update-freq $update_freq \

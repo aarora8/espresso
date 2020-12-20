@@ -21,7 +21,7 @@ if [ ${stage} -le 1 ]; then
     --source-lang input --target-lang label \
     --destdir names-bin --dataset-impl raw
 fi
-exit
+
 if [ ${stage} -le 2 ]; then
 
   fairseq-train names-bin \
