@@ -6,14 +6,14 @@
 #  Eg. local/prepare_data.sh
 
 stage=0
-download_dir=data/local/rimes_data
-train_img_url="https://dl.fbaipublicfiles.com/fairseq/data/tutorial_names.tar.gz"
+download_dir=data/local
+data_url="https://dl.fbaipublicfiles.com/fairseq/data/tutorial_names.tar.gz"
 . ./cmd.sh
 . ./path.sh
 . ./utils/parse_options.sh || exit 1;
 
 if [ ${stage} -le 1 ]; then
-  wget -P $download_dir $train_img_url
+  wget -P $download_dir $data_url
   tar -xzf $download_dir/tutorial_names.tar.gz
 
   fairseq-preprocess \
@@ -21,7 +21,7 @@ if [ ${stage} -le 1 ]; then
     --source-lang input --target-lang label \
     --destdir names-bin --dataset-impl raw
 fi
-
+exit
 if [ ${stage} -le 2 ]; then
 
   fairseq-train names-bin \

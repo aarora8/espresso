@@ -7,7 +7,7 @@ from fairseq.tasks import FairseqTask, register_task
 
 
 @register_task('simple_classification')
-class SimpleClassificationTask(LegacyFairseqTask):
+class SimpleClassificationTask(FairseqTask):
 
     @staticmethod
     def add_args(parser):
