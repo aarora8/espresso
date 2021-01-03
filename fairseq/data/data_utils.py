@@ -280,24 +280,6 @@ def batch_by_size(
     required_batch_size_multiple=1,
     fixed_shapes=None,
 ):
-    """
-    Yield mini-batches of indices bucketed by size. Batches may contain
-    sequences of different lengths.
-
-    Args:
-        indices (List[int]): ordered list of dataset indices
-        num_tokens_fn (callable): function that returns the number of tokens at
-            a given index
-        max_tokens (int, optional): max number of tokens in each batch
-            (default: None).
-        max_sentences (int, optional): max number of sentences in each
-            batch (default: None).
-        required_batch_size_multiple (int, optional): require batch size to
-            be less than N or a multiple of N (default: 1).
-        fixed_shapes (List[Tuple[int, int]], optional): if given, batches will
-            only be created with the given shapes. *max_sentences* and
-            *required_batch_size_multiple* will be ignored (default: None).
-    """
     try:
         from fairseq.data.data_utils_fast import (
             batch_by_size_fast,
@@ -368,13 +350,10 @@ def batch_by_size_baseline(
                     sent_count = sent_count - sent_count % bsz_mult
                 batches.append(indices[start : start + sent_count])
                 start = start + sent_count
-                # print('| {} {} {} '.format(start, sent_count, max_val))
                 break
 
     print("the number of batches are {}".format(len(batches)))
     print("the batch shape is {}".format(np.shape(batches)))
-    # for i in range(len(batches)):
-    #     print("the batch shape is {}".format(np.shape(batches[i])))
     print("the batch 1 is {}".format(batches[1]))
     sentence = input('\nInput: ')
     return batches
