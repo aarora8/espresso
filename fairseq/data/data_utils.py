@@ -317,10 +317,15 @@ def batch_by_size(
     if not isinstance(indices, np.ndarray):
         indices = np.fromiter(indices, dtype=np.int64, count=-1)
 
+    print("Shape of array: ", indices.size)
+    num_tokens_vec = []
+    for i in range(indices.size):
+        num_tokens_vec.append(num_tokens_fn(i))
+    #num_tokens_vec = num_tokens_fn(indices).astype('int64')
     if fixed_shapes is None:
-        return batch_by_size_fast(
+        return batch_by_size_baseline(
             indices,
-            num_tokens_fn,
+            num_tokens_vec,
             max_tokens,
             max_sentences,
             bsz_mult,
@@ -336,6 +341,33 @@ def batch_by_size(
         fixed_shapes_sorted = fixed_shapes[sort_order]
         return batch_fixed_shapes_fast(indices, num_tokens_fn, fixed_shapes_sorted)
 
+
+def batch_by_size_baseline(
+    indices,
+    num_tokens_vec,
+    max_tokens,
+    max_sentences,
+    bsz_mult,
+):
+    """Simple, reliable and slow implementation of batch by size """
+    batches = []
+    start = 0
+    while start < len(indices):
+        for end in range(start + 1, len(indices) + 1):
+            max_val = max(num_tokens_vec[pos] for pos in range(start, end))
+            sent_count = end - start
+            num_tokens = max_val * sent_count
+            overflow = num_tokens > max_tokens > 0 or sent_count > max_sentences > 0
+            terminate = overflow or end == len(indices)
+            if overflow:
+                sent_count -= 1
+            if terminate:
+                if sent_count > bsz_mult:
+                    sent_count = sent_count - sent_count % bsz_mult
+                batches.append(indices[start : start + sent_count])
+                start = start + sent_count
+                break
+    return batches
 
 def post_process(sentence: str, symbol: str):
     if symbol == "sentencepiece":

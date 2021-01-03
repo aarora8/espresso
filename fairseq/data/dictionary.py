@@ -285,6 +285,19 @@ class Dictionary(object):
             ),
         )
 
+    def _values(self, kv_iterator):
+        for k, v in kv_iterator:
+            print("{} {}".format(k, v))
+
+    def values(self):
+        ex_keys, ex_vals = self._get_meta()
+        self._values(
+            zip(
+                ex_keys + self.symbols[self.nspecial :],
+                ex_vals + self.count[self.nspecial :],
+            ),
+        )
+
     def dummy_sentence(self, length):
         t = torch.Tensor(length).uniform_(self.nspecial + 1, len(self)).long()
         t[-1] = self.eos()
