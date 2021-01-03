@@ -413,6 +413,7 @@ class Trainer(object):
         """Return an EpochBatchIterator over the training set for a given epoch."""
         if load_dataset:
             logger.info("loading train data for epoch {}".format(epoch))
+            logger.info("max number of tokens epoch {}".format(self.cfg.dataset.max_tokens))
             self.task.load_dataset(
                 self.cfg.dataset.train_subset,
                 epoch=epoch,

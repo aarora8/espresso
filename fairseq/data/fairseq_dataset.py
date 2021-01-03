@@ -4,9 +4,11 @@
 # LICENSE file in the root directory of this source tree.
 
 import numpy as np
+import logging
 import torch.utils.data
 from fairseq.data import data_utils
 
+logger = logging.getLogger(__name__)
 
 class EpochListening:
     """Mixin for receiving updates whenever the epoch increments."""
@@ -107,7 +109,11 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         from fairseq.data import data_utils
 
         fixed_shapes = self.get_batch_shapes()
+        logger.info("the max number of tokens are {}".format(max_tokens))
+        print(self)
         print("the batch shape is {}".format(fixed_shapes))
+        print("the max number of sentence is {}".format(max_sentences))
+        print("printing number of tokens in sentence 1 {}".format(self.num_tokens(1)))
         if fixed_shapes is not None:
 
             def adjust_bsz(bsz, num_tokens):
@@ -129,7 +135,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
                     for (bsz, num_tokens) in fixed_shapes
                 ]
             )
-        print("printing number of tokens {}".format(self.num_tokens(1)))
+        logger.info("end batch by size fairseq dataset")
         return data_utils.batch_by_size(
             indices,
             num_tokens_fn=self.num_tokens,

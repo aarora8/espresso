@@ -6,10 +6,9 @@ args = options.parse_args_and_arch(parser)
 
 # Setup task
 task = tasks.setup_task(args)
-
 # Load model
-print('| loading model from {}'.format(args.path))
-models, _model_args = checkpoint_utils.load_model_ensemble([args.path], task=task)
+print('| loading model from {}'.format('checkpoints/checkpoint_best.pt'))
+models, _model_args = checkpoint_utils.load_model_ensemble(['checkpoints/checkpoint_best.pt'], task=task)
 model = models[0]
 
 #while True:

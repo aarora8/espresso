@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 from fairseq.data import Dictionary, LanguagePairDataset, FairseqDataset, data_utils, iterators
-from fairseq.tasks import LegacyFairseqTask, FairseqTask, register_task
+from fairseq.tasks import LegacyFairseqTask, register_task
 
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
     def load_dataset(self, split, **kwargs):
         """Load a given dataset split (e.g., train, valid, test)."""
 
+        logger.info("load dataset start")
         prefix = os.path.join(self.args.data, '{}.input-label'.format(split))
 
         # Read input sentences.
@@ -93,8 +94,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
             input_feeding=False,
         )
         print(self.datasets[split])
-        #print(self.datasets[split].collater(self.datasets[split].))
-        print("complete")
+        print("load dataset complete")
         assert len(sentences) == len(labels)
 
     def max_positions(self):
@@ -155,21 +155,22 @@ class SimpleClassificationTask(LegacyFairseqTask):
         # get indices ordered by example size
         with data_utils.numpy_seed(seed):
             indices = dataset.ordered_indices()
-
-        print(dataset)
         indices2 = np.sort(indices)
-        print(dataset.sizes[indices2])
-        print("the indices are: {}".format(indices2))
-        print("the indices are: {}".format(len(indices2)))
+
+
         # filter examples that are too large
         if max_positions is not None:
-            indices = self.filter_indices_by_size(
-                indices, dataset, max_positions, ignore_invalid_inputs
+            indices2 = self.filter_indices_by_size(
+                indices2, dataset, max_positions, ignore_invalid_inputs
             )
-
+        logger.info("the max number of tokens are {}".format(max_tokens))
+        print("the indices are: {}".format(indices2))
+        print("the max number of tokens are {}".format(max_tokens))
+        print("the number of indices are: {}".format(len(dataset.src_sizes)))
+        print(dataset.sizes[indices2])
         # create mini-batches with given size constraints
         batch_sampler = dataset.batch_by_size(
-            indices,
+            indices2,
             max_tokens=max_tokens,
             max_sentences=max_sentences,
             required_batch_size_multiple=required_batch_size_multiple,

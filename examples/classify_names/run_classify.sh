@@ -5,12 +5,12 @@
 # (i.e text, images.scp, utt2spk and spk2utt). It calls process_data.py.
 #  Eg. local/prepare_data.sh
 
-stage=0
+stage=2
 download_dir=data/local
 data_url="https://dl.fbaipublicfiles.com/fairseq/data/tutorial_names.tar.gz"
 . ./cmd.sh
 . ./path.sh
-. ./utils/parse_options.sh || exit 1;
+#. ./utils/parse_options.sh || exit 1;
 
 if [ ${stage} -le 1 ]; then
   wget -P $download_dir $data_url

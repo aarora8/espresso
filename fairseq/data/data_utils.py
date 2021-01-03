@@ -17,7 +17,6 @@ from typing import Optional, Tuple
 import numpy as np
 import torch
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -317,11 +316,10 @@ def batch_by_size(
     if not isinstance(indices, np.ndarray):
         indices = np.fromiter(indices, dtype=np.int64, count=-1)
 
-    print("Shape of array: ", indices.size)
+    logger.info("enter batch by size data utils")
     num_tokens_vec = []
     for i in range(indices.size):
         num_tokens_vec.append(num_tokens_fn(i))
-    #num_tokens_vec = num_tokens_fn(indices).astype('int64')
     if fixed_shapes is None:
         return batch_by_size_baseline(
             indices,
@@ -352,6 +350,10 @@ def batch_by_size_baseline(
     """Simple, reliable and slow implementation of batch by size """
     batches = []
     start = 0
+    logger.info("enter batch by size baseline data utils")
+    print(
+        "***************************************************************************************||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+    print('| {} examples/sentences'.format(len(indices)))
     while start < len(indices):
         for end in range(start + 1, len(indices) + 1):
             max_val = max(num_tokens_vec[pos] for pos in range(start, end))
@@ -366,7 +368,15 @@ def batch_by_size_baseline(
                     sent_count = sent_count - sent_count % bsz_mult
                 batches.append(indices[start : start + sent_count])
                 start = start + sent_count
+                # print('| {} {} {} '.format(start, sent_count, max_val))
                 break
+
+    print("the number of batches are {}".format(len(batches)))
+    print("the batch shape is {}".format(np.shape(batches)))
+    # for i in range(len(batches)):
+    #     print("the batch shape is {}".format(np.shape(batches[i])))
+    print("the batch 1 is {}".format(batches[1]))
+    sentence = input('\nInput: ')
     return batches
 
 def post_process(sentence: str, symbol: str):
