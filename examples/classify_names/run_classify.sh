@@ -31,3 +31,5 @@ if [ ${stage} -le 2 ]; then
     --optimizer adam --lr 0.001 --lr-shrink 0.5 \
     --max-tokens 1000 | tee $log_file
 fi
+
+#python3 eval_classifier.py names-bin --path checkpoints/checkpoint_best.pt
