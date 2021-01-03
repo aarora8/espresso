@@ -106,8 +106,6 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         Given an ordered set of indices, return batches according to
         *max_tokens*, *max_sentences* and *required_batch_size_multiple*.
         """
-        from fairseq.data import data_utils
-
         fixed_shapes = self.get_batch_shapes()
         logger.info("the max number of tokens are {}".format(max_tokens))
         print(self)
@@ -172,7 +170,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         if not isinstance(indices, np.ndarray):
             indices = np.fromiter(indices, dtype=np.int64, count=-1)
 
-        logger.info("enter batch by size data utils")
+        logger.info("enter batch by size utils")
         num_tokens_vec = []
         for i in range(indices.size):
             num_tokens_vec.append(num_tokens_fn(i))
@@ -206,7 +204,8 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         """Simple, reliable and slow implementation of batch by size """
         batches = []
         start = 0
-        logger.info("enter batch by size baseline data utils")
+        logger.info("enter batch by size utils baseline")
+        print(self.tgt_dict.values())
         print(
             "***************************************************************************************||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
         print('| {} examples/sentences'.format(len(indices)))
@@ -229,7 +228,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         print("the number of batches are {}".format(len(batches)))
         print("the batch shape is {}".format(np.shape(batches)))
         print("the batch 1 is {}".format(batches[1]))
-        # sentence = input('\nInput: ')
+        sentence = input('\nInput: ')
         return batches
 
     def filter_indices_by_size(self, indices, max_sizes):

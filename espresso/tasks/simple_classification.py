@@ -58,8 +58,10 @@ class SimpleClassificationTask(LegacyFairseqTask):
                     sentence, add_if_not_exist=False,
                 )
                 #print('token: {} '.format((tokens)))
+                #token: tensor([48,  4, 13, 15,  5,  8,  2], dtype=torch.int32)
                 sentences.append(tokens)
                 lengths.append(tokens.numel())
+                # print(lengths) [7, 8, 8, 5, 12, 6, 6, 5 ...
 
         # Read labels.
         labels = []
@@ -67,12 +69,23 @@ class SimpleClassificationTask(LegacyFairseqTask):
             print(prefix + '.label')
             for line in file:
                 label = line.strip()
+                # print('label: {} '.format((label)))
                 labels.append(
                     # Convert label to a numeric ID.
                     torch.LongTensor([self.label_vocab.add_symbol(label)])
                 )
-                #print('token: {} '.format(torch.LongTensor([self.label_vocab.add_symbol(label)])))
-                #print('token: {} '.format((label)))
+                #print(labels[0]) tensor([5])
+                # if label == 'Russian':
+                #     print(self.label_vocab.index('Russian'))
+                #     print(self.label_vocab.count[4])
+
+        print(self.label_vocab.indices.keys())
+        print(self.label_vocab.indices.values())
+        for i in range(len(self.label_vocab.count)):
+            print(self.label_vocab.symbols[i])
+            print(self.label_vocab.count[i])
+        print('label_vocab: {} '.format(self.label_vocab.values()))
+
         assert len(sentences) == len(labels)
         print('| {} {} {} examples'.format(self.args.data, split, len(sentences)))
 
