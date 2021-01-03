@@ -355,7 +355,7 @@ def batch_by_size_baseline(
     print("the number of batches are {}".format(len(batches)))
     print("the batch shape is {}".format(np.shape(batches)))
     print("the batch 1 is {}".format(batches[1]))
-    sentence = input('\nInput: ')
+    # sentence = input('\nInput: ')
     return batches
 
 def post_process(sentence: str, symbol: str):

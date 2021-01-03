@@ -155,22 +155,20 @@ class SimpleClassificationTask(LegacyFairseqTask):
         # get indices ordered by example size
         with data_utils.numpy_seed(seed):
             indices = dataset.ordered_indices()
-        indices2 = np.sort(indices)
-
 
         # filter examples that are too large
         if max_positions is not None:
-            indices2 = self.filter_indices_by_size(
-                indices2, dataset, max_positions, ignore_invalid_inputs
+            indices = self.filter_indices_by_size(
+                indices, dataset, max_positions, ignore_invalid_inputs
             )
         logger.info("the max number of tokens are {}".format(max_tokens))
-        print("the indices are: {}".format(indices2))
+        print("the indices are: {}".format(indices))
         print("the max number of tokens are {}".format(max_tokens))
         print("the number of indices are: {}".format(len(dataset.src_sizes)))
-        print(dataset.sizes[indices2])
+        print(dataset.sizes[indices])
         # create mini-batches with given size constraints
         batch_sampler = dataset.batch_by_size(
-            indices2,
+            indices,
             max_tokens=max_tokens,
             max_sentences=max_sentences,
             required_batch_size_multiple=required_batch_size_multiple,
