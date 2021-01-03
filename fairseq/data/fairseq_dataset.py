@@ -136,7 +136,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
                 ]
             )
         logger.info("end batch by size fairseq dataset")
-        return data_utils.batch_by_size(
+        return self.batch_by_size_utils(
             indices,
             num_tokens_fn=self.num_tokens,
             max_tokens=max_tokens,
@@ -144,6 +144,93 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
             required_batch_size_multiple=required_batch_size_multiple,
             fixed_shapes=fixed_shapes,
         )
+
+    def batch_by_size_utils(
+            self,
+            indices,
+            num_tokens_fn,
+            max_tokens=None,
+            max_sentences=None,
+            required_batch_size_multiple=1,
+            fixed_shapes=None,
+    ):
+        try:
+            from fairseq.data.data_utils_fast import (
+                batch_by_size_fast,
+                batch_fixed_shapes_fast,
+            )
+        except ImportError:
+            raise ImportError(
+                "Please build Cython components with: `pip install --editable .` "
+                "or `python setup.py build_ext --inplace`"
+            )
+
+        max_tokens = max_tokens if max_tokens is not None else -1
+        max_sentences = max_sentences if max_sentences is not None else -1
+        bsz_mult = required_batch_size_multiple
+
+        if not isinstance(indices, np.ndarray):
+            indices = np.fromiter(indices, dtype=np.int64, count=-1)
+
+        logger.info("enter batch by size data utils")
+        num_tokens_vec = []
+        for i in range(indices.size):
+            num_tokens_vec.append(num_tokens_fn(i))
+        if fixed_shapes is None:
+            return self.batch_by_size_utils_baseline(
+                indices,
+                num_tokens_vec,
+                max_tokens,
+                max_sentences,
+                bsz_mult,
+            )
+        else:
+            fixed_shapes = np.array(fixed_shapes, dtype=np.int64)
+            sort_order = np.lexsort(
+                [
+                    fixed_shapes[:, 1].argsort(),  # length
+                    fixed_shapes[:, 0].argsort(),  # bsz
+                ]
+            )
+            fixed_shapes_sorted = fixed_shapes[sort_order]
+            return batch_fixed_shapes_fast(indices, num_tokens_fn, fixed_shapes_sorted)
+
+    def batch_by_size_utils_baseline(
+            self,
+            indices,
+            num_tokens_vec,
+            max_tokens,
+            max_sentences,
+            bsz_mult,
+    ):
+        """Simple, reliable and slow implementation of batch by size """
+        batches = []
+        start = 0
+        logger.info("enter batch by size baseline data utils")
+        print(
+            "***************************************************************************************||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+        print('| {} examples/sentences'.format(len(indices)))
+        while start < len(indices):
+            for end in range(start + 1, len(indices) + 1):
+                max_val = max(num_tokens_vec[pos] for pos in range(start, end))
+                sent_count = end - start
+                num_tokens = max_val * sent_count
+                overflow = num_tokens > max_tokens > 0 or sent_count > max_sentences > 0
+                terminate = overflow or end == len(indices)
+                if overflow:
+                    sent_count -= 1
+                if terminate:
+                    if sent_count > bsz_mult:
+                        sent_count = sent_count - sent_count % bsz_mult
+                    batches.append(indices[start: start + sent_count])
+                    start = start + sent_count
+                    break
+
+        print("the number of batches are {}".format(len(batches)))
+        print("the batch shape is {}".format(np.shape(batches)))
+        print("the batch 1 is {}".format(batches[1]))
+        # sentence = input('\nInput: ')
+        return batches
 
     def filter_indices_by_size(self, indices, max_sizes):
         """
