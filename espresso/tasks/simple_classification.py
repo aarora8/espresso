@@ -1,10 +1,14 @@
 
 import os
 import torch
+import logging
+import numpy as np
 
-from fairseq.data import Dictionary, LanguagePairDataset
+from fairseq.data import Dictionary, LanguagePairDataset, FairseqDataset, data_utils, iterators
 from fairseq.tasks import LegacyFairseqTask, FairseqTask, register_task
 
+
+logger = logging.getLogger(__name__)
 
 @register_task('simple_classification')
 class SimpleClassificationTask(LegacyFairseqTask):
@@ -34,6 +38,8 @@ class SimpleClassificationTask(LegacyFairseqTask):
         super().__init__(args)
         self.input_vocab = input_vocab
         self.label_vocab = label_vocab
+        #print('| [input] dictionary2: {} types'.format(len(input_vocab)))
+        #print('| [label] dictionary2: {} types'.format((label_vocab.values())))
 
     def load_dataset(self, split, **kwargs):
         """Load a given dataset split (e.g., train, valid, test)."""
@@ -45,25 +51,27 @@ class SimpleClassificationTask(LegacyFairseqTask):
         with open(prefix + '.input', encoding='utf-8') as file:
             for line in file:
                 sentence = line.strip()
-
+                #print('sentence: {} '.format((sentence)))
                 # Tokenize the sentence, splitting on spaces
                 tokens = self.input_vocab.encode_line(
                     sentence, add_if_not_exist=False,
                 )
-
+                #print('token: {} '.format((tokens)))
                 sentences.append(tokens)
                 lengths.append(tokens.numel())
 
         # Read labels.
         labels = []
         with open(prefix + '.label', encoding='utf-8') as file:
+            print(prefix + '.label')
             for line in file:
                 label = line.strip()
                 labels.append(
                     # Convert label to a numeric ID.
                     torch.LongTensor([self.label_vocab.add_symbol(label)])
                 )
-
+                #print('token: {} '.format(torch.LongTensor([self.label_vocab.add_symbol(label)])))
+                #print('token: {} '.format((label)))
         assert len(sentences) == len(labels)
         print('| {} {} {} examples'.format(self.args.data, split, len(sentences)))
 
@@ -84,6 +92,10 @@ class SimpleClassificationTask(LegacyFairseqTask):
             # target sequence.
             input_feeding=False,
         )
+        print(self.datasets[split])
+        #print(self.datasets[split].collater(self.datasets[split].))
+        print("complete")
+        assert len(sentences) == len(labels)
 
     def max_positions(self):
         """Return the max input length allowed by the task."""
@@ -112,3 +124,71 @@ class SimpleClassificationTask(LegacyFairseqTask):
     #     data_buffer_size=0, disable_iterator_cache=False,
     # ):
     #     (...)
+    def get_batch_iterator(
+        self,
+        dataset,
+        max_tokens=None,
+        max_sentences=None,
+        max_positions=None,
+        ignore_invalid_inputs=False,
+        required_batch_size_multiple=1,
+        seed=1,
+        num_shards=1,
+        shard_id=0,
+        num_workers=0,
+        epoch=1,
+        data_buffer_size=0,
+        disable_iterator_cache=False,
+    ):
+        can_reuse_epoch_itr = not disable_iterator_cache and self.can_reuse_epoch_itr(
+            dataset
+        )
+        if can_reuse_epoch_itr and dataset in self.dataset_to_epoch_iter:
+            logger.debug("reusing EpochBatchIterator for epoch {}".format(epoch))
+            return self.dataset_to_epoch_iter[dataset]
+
+        assert isinstance(dataset, FairseqDataset)
+
+        # initialize the dataset with the correct starting epoch
+        dataset.set_epoch(epoch)
+
+        # get indices ordered by example size
+        with data_utils.numpy_seed(seed):
+            indices = dataset.ordered_indices()
+
+        print(dataset)
+        indices2 = np.sort(indices)
+        print(dataset.sizes[indices2])
+        print("the indices are: {}".format(indices2))
+        print("the indices are: {}".format(len(indices2)))
+        # filter examples that are too large
+        if max_positions is not None:
+            indices = self.filter_indices_by_size(
+                indices, dataset, max_positions, ignore_invalid_inputs
+            )
+
+        # create mini-batches with given size constraints
+        batch_sampler = dataset.batch_by_size(
+            indices,
+            max_tokens=max_tokens,
+            max_sentences=max_sentences,
+            required_batch_size_multiple=required_batch_size_multiple,
+        )
+
+        # return a reusable, sharded iterator
+        epoch_iter = iterators.EpochBatchIterator(
+            dataset=dataset,
+            collate_fn=dataset.collater,
+            batch_sampler=batch_sampler,
+            seed=seed,
+            num_shards=num_shards,
+            shard_id=shard_id,
+            num_workers=num_workers,
+            epoch=epoch,
+            buffer_size=data_buffer_size,
+        )
+
+        if can_reuse_epoch_itr:
+            self.dataset_to_epoch_iter[dataset] = epoch_iter
+
+        return epoch_iter
