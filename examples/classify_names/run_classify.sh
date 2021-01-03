@@ -23,10 +23,11 @@ if [ ${stage} -le 1 ]; then
 fi
 
 if [ ${stage} -le 2 ]; then
-
+  mkdir -p log
+  log_file=log/train.log
   CUDA_VISIBLE_DEVICES=$free_gpu fairseq-train names-bin \
     --task simple_classification \
     --arch pytorch_tutorial_rnn \
     --optimizer adam --lr 0.001 --lr-shrink 0.5 \
-    --max-tokens 1000
+    --max-tokens 1000 | tee $log_file
 fi
