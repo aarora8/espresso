@@ -176,7 +176,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         for i in range(indices.size):
             num_tokens_vec.append(num_tokens_fn(i))
         if fixed_shapes is None:
-            return self.batch_by_size_utils_baseline(
+            return self.batch_by_size_utils_baseline_triplet(
                 indices,
                 num_tokens_vec,
                 max_tokens,
@@ -229,7 +229,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         print("the number of batches are {}".format(len(batches)))
         print("the batch shape is {}".format(np.shape(batches)))
         print("the batch 1 is {}".format(batches[1]))
-        sentence = input('\nInput: ')
+        # sentence = input('\nInput: ')
         return batches
 
     def batch_by_size_utils_baseline_triplet(
@@ -267,7 +267,7 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         print("the number of batches are {}".format(len(batches)))
         print("the batch shape is {}".format(np.shape(batches)))
         print("the batch 1 is {}".format(batches[1]))
-        sentence = input('\nInput: ')
+        # sentence = input('\nInput: ')
 
         print("unique lables are {}".format(np.unique(self.tgt)))
         print("lables at fifth location is {}".format(self.tgt[4].numpy()))

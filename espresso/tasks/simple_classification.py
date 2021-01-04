@@ -202,6 +202,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
         )
 
         if can_reuse_epoch_itr:
+
             self.dataset_to_epoch_iter[dataset] = epoch_iter
 
         return epoch_iter
