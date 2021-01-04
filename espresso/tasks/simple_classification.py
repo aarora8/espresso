@@ -3,6 +3,7 @@ import os
 import torch
 import logging
 import numpy as np
+from collections import Counter
 
 from fairseq.data import Dictionary, LanguagePairDataset, FairseqDataset, data_utils, iterators
 from fairseq.tasks import LegacyFairseqTask, register_task
@@ -78,7 +79,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
                 # if label == 'Russian':
                 #     print(self.label_vocab.index('Russian'))
                 #     print(self.label_vocab.count[4])
-
+        print("lables are {}".format(np.unique(labels)))
         print(self.label_vocab.indices.keys())
         print(self.label_vocab.indices.values())
         for i in range(len(self.label_vocab.count)):
@@ -106,6 +107,30 @@ class SimpleClassificationTask(LegacyFairseqTask):
             # target sequence.
             input_feeding=False,
         )
+        print("unique lables are {}".format(np.unique(self.datasets[split].tgt)))
+        print("lables at fifth location is {}".format(self.datasets[split].tgt[4].numpy()))
+        print("lables at fifth location is {}".format(self.datasets[split].tgt[253].numpy()))
+        tensor_to_np_labels = np.array(self.datasets[split].tgt)
+        id_counts = Counter(tensor_to_np_labels)
+        print(tensor_to_np_labels)
+        same = []
+        for index, word_id in enumerate(self.datasets[split].tgt):  # collect same samples
+            indices = np.where(tensor_to_np_labels == word_id.numpy())[0]
+            same.append(np.random.permutation(indices[indices != index])[:1])
+        # same = np.array(same)
+        print("value same {}".format(same))
+        # print("shape same ", same.shape)
+
+
+        diff_ids = np.random.randint(0, len(self.datasets[split].tgt_dict) - 1, (len(labels), 5))
+        diff_ids[diff_ids >= np.tile(tensor_to_np_labels.reshape(-1, 1), [1, 5])] += 1
+        diff = np.full_like(diff_ids, 0, dtype=np.int32)
+        for word_id, count in id_counts.items():  # collect diff samples
+            indices = np.where(diff_ids == word_id)
+            diff[indices] = np.where(tensor_to_np_labels == word_id)[0][np.random.randint(0, count, len(indices[0]))]
+        for i in range(len(labels)):
+            print("value same {}".format(diff[i]))
+        sentence = input('\nInput: ')
         print(self.datasets[split])
         print("load dataset complete")
         assert len(sentences) == len(labels)
