@@ -1,0 +1,77 @@
+Data loader:
+we have around 16k names and language pairs.
+from this starting point first simple classification will be called:
+SimpleClassificationTask
+    load_dataset (names and languages) into its data structure:
+        src=sentences,
+        src_sizes=lengths,
+        src_dict=self.input_vocab,
+        tgt=labels,
+        tgt_sizes=torch.ones(len(labels)),
+        tgt_dict=self.label_vocab,
+
+We will create mini-batches:
+    - sampling is done during mini-batches (yes)
+    - the default sampling is done in FairseqDataset class (without replacement)
+    - Function name = batch_by_size
+             while start < len(indices):
+            for end in range(start + 1, len(indices) + 1):
+                max_val = max(num_tokens_vec[pos] for pos in range(start, end))
+                sent_count = end - start
+                num_tokens = max_val * sent_count
+                overflow = num_tokens > max_tokens > 0 or sent_count > max_sentences > 0
+                terminate = overflow or end == len(indices)
+                if overflow:
+                    sent_count -= 1
+                if terminate:
+                    if sent_count > bsz_mult:
+                        sent_count = sent_count - sent_count % bsz_mult
+                    batches.append(indices[start: start + sent_count])
+                    start = start + sent_count
+                    break
+    It will rndomly choose around hunderd examples from the
+    Max tokens determines the batch size
+    Max tokens = 1000 in a batch,
+    one sample length can be 5, 10: batch size with 5 length examples  = 200
+                                    batch size with 10 length examples = 100
+    "Must specify batch size either with --max-tokens or --batch-size"
+    GPU can support = 1000 (matrix AxB where A*B = 1000)
+    batch = list of index
+
+    If there are 10 triplets in the batch. ('name1_english', 'name2_english', 'name3_russian')
+
+
+
+Target = class_id (mini-batch size  * 1)
+net_input = (mini-batch size  * max_tokens)
+net_output = (mini-batch size  * num_classes)
+ntokens = mini-batch size
+nsentences = mini-batch size
+id = indices
+
+train calls trainer, Trainer's train step calls task train-step and task calls criterion
+
+loss, sample_size_i, logging_output = self.task.train_step(
+                        sample=sample,
+                        model=self.model,
+                        criterion=self.criterion,
+                        optimizer=self.optimizer,
+                        update_num=self.get_num_updates(),
+                        ignore_grad=is_dummy_batch,
+                    )
+
+loss, sample_size, logging_output = criterion(model, sample)
+fairseq task train step is very important script
+we can assign criterion and everything else there
+
+Simple setup:
+Input-output = (phone-sequence, wordid), cross-entropy, lstm
+creating a data loader for safe-t
+During training, how to get the phoneme-sequence
+phone-sequence of a word
+Eventually: Input will be lattice, but currently the inpur is phone-sequence
+
+
+#python3 eval_classifier.py names-bin --path checkpoints/checkpoint_best.pt
+
+#python3 train.py /Users/ashisharora/espresso/examples/classify_names/names-bin --task simple_classification --arch pytorch_tutorial_rnn --optimizer adam --lr 0.001 --lr-shrink 0.5 --max-tokens 1000

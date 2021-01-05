@@ -33,3 +33,5 @@ if [ ${stage} -le 2 ]; then
 fi
 
 #python3 eval_classifier.py names-bin --path checkpoints/checkpoint_best.pt
+
+python3 train.py /Users/ashisharora/espresso/examples/classify_names/names-bin --task simple_classification --arch pytorch_tutorial_rnn --optimizer adam --lr 0.001 --lr-shrink 0.5 --max-tokens 1000
