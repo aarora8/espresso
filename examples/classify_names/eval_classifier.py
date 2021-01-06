@@ -47,3 +47,14 @@ top_scores, top_labels = preds[1].topk(k=3)
 for score, label_idx in zip(top_scores, top_labels):
     label_name = task.target_dictionary.string([label_idx])
     print('({:.2f})\t{}'.format(score, label_name))
+
+
+# | [input] dictionary: 64 types
+# | [label] dictionary: 24 types
+# | loading model from /Users/ashisharora/espresso/fairseq_cli/checkpoints/checkpoint_best.pt
+# (-0.73)	English
+# (-1.77)	Czech
+# (-2.20)	Italian
+# (-0.73)	English
+# (-1.77)	Czech
+# (-2.20)	Italian
