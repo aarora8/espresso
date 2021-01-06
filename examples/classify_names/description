@@ -10,6 +10,9 @@ SimpleClassificationTask
         tgt_sizes=torch.ones(len(labels)),
         tgt_dict=self.label_vocab,
 
+    indices is the list of index, its is sorted by token length
+    a batch contains a list of index
+
 We will create mini-batches:
     - sampling is done during mini-batches (yes)
     - the default sampling is done in FairseqDataset class (without replacement)

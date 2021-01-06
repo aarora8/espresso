@@ -248,20 +248,45 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         print(
             "***************************************************************************************||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
         print('| {} examples/sentences'.format(len(indices)))
+
+        classid_nparray = np.array(self.tgt)
+        print(classid_nparray)
+        same_classid_index_list = []
+        for index_i, classid_of_indexi in enumerate(classid_nparray):  # collect same samples
+            indices_of_classid_of_indexi = np.where(classid_nparray == classid_of_indexi)
+            indices_of_classid_of_indexi = indices_of_classid_of_indexi[0]
+            same_index = np.random.permutation(indices_of_classid_of_indexi[indices_of_classid_of_indexi != index_i])[0]
+            same_classid_index_list.append(same_index)
+
+        print(type(same_classid_index_list))
+        same_classid_index_list = np.array(same_classid_index_list)
+        print("value same {}".format(same_classid_index_list))
+        print("shape same ", same_classid_index_list.shape)
+        id_counts = Counter(same_classid_index_list)
+
         while start < len(indices):
             for end in range(start + 1, len(indices) + 1):
-                max_val = max(num_tokens_vec[pos] for pos in range(start, end))
-                sent_count = end - start
-                num_tokens = max_val * sent_count
-                overflow = num_tokens > max_tokens > 0 or sent_count > max_sentences > 0
+                max_val_st_en = max(num_tokens_vec[pos] for pos in range(start, end))
+                max_val_same_classid_st_en = max(num_tokens_vec[pos] for pos in same_classid_index_list[start:end])
+                max_val = max(max_val_st_en, max_val_same_classid_st_en)
+                sent_count_st_en = (end - start)
+                num_tokens = 2* max_val * sent_count_st_en
+                overflow = num_tokens > max_tokens > 0 or 2*sent_count_st_en > max_sentences > 0
                 terminate = overflow or end == len(indices)
                 if overflow:
-                    sent_count -= 1
+                    sent_count_st_en -= 1
                 if terminate:
-                    if sent_count > bsz_mult:
-                        sent_count = sent_count - sent_count % bsz_mult
-                    batches.append(indices[start: start + sent_count])
-                    start = start + sent_count
+                    if sent_count_st_en > bsz_mult:
+                        reminder_st_en = sent_count_st_en % bsz_mult
+                        sent_count_st_en = sent_count_st_en - reminder_st_en
+                    indices_st_en = indices[start: start + sent_count_st_en]
+                    indices_same_st_en = same_classid_index_list[start: start + sent_count_st_en]
+                    print(type(indices_st_en))
+                    print(type(indices_same_st_en))
+                    batch_indices = np.concatenate((indices_st_en, indices_same_st_en))
+                    # indices_st_en.extend(indices_same_st_en)
+                    batches.append(batch_indices)
+                    start = start + sent_count_st_en
                     break
 
         print("the number of batches are {}".format(len(batches)))
@@ -270,28 +295,9 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
         # sentence = input('\nInput: ')
 
         print("unique lables are {}".format(np.unique(self.tgt)))
-        print("lables at fifth location is {}".format(self.tgt[4].numpy()))
-        print("lables at fifth location is {}".format(self.tgt[253].numpy()))
-        tensor_to_np_labels = np.array(self.tgt)
-        id_counts = Counter(tensor_to_np_labels)
-        print(tensor_to_np_labels)
-        same = []
-        for index, word_id in enumerate(self.tgt):  # collect same samples
-            indices = np.where(tensor_to_np_labels == word_id.numpy())[0]
-            same.append(np.random.permutation(indices[indices != index])[:1])
-        # same = np.array(same)
-        # print("value same {}".format(same))
-        # print("shape same ", same.shape)
+        print("lables at 5 location is {}".format(self.tgt[4].numpy()))
+        print("lables at 254 location is {}".format(self.tgt[253].numpy()))
 
-
-        diff_ids = np.random.randint(0, len(self.tgt_dict) - 1, (len(self.tgt), 5))
-        diff_ids[diff_ids >= np.tile(tensor_to_np_labels.reshape(-1, 1), [1, 5])] += 1
-        diff = np.full_like(diff_ids, 0, dtype=np.int32)
-        for word_id, count in id_counts.items():  # collect diff samples
-            indices = np.where(diff_ids == word_id)
-            diff[indices] = np.where(tensor_to_np_labels == word_id)[0][np.random.randint(0, count, len(indices[0]))]
-            # for i in range(len(labels)):
-            #     print("value same {}".format(diff[i]))
             # sentence = input('\nInput: ')
         return batches
 

@@ -25,7 +25,7 @@ fi
 if [ ${stage} -le 2 ]; then
   mkdir -p log
   log_file=log/train.log
-  CUDA_VISIBLE_DEVICES=$free_gpu fairseq-train names-bin \
+  fairseq-train names-bin \
     --task simple_classification \
     --arch pytorch_tutorial_rnn \
     --optimizer adam --lr 0.001 --lr-shrink 0.5 \
@@ -34,4 +34,4 @@ fi
 
 #python3 eval_classifier.py names-bin --path checkpoints/checkpoint_best.pt
 
-python3 train.py /Users/ashisharora/espresso/examples/classify_names/names-bin --task simple_classification --arch pytorch_tutorial_rnn --optimizer adam --lr 0.001 --lr-shrink 0.5 --max-tokens 1000
+#python3 train.py /Users/ashisharora/espresso/examples/classify_names/names-bin --task simple_classification --arch pytorch_tutorial_rnn --optimizer adam --lr 0.001 --lr-shrink 0.5 --max-tokens 1000
