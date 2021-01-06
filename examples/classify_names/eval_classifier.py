@@ -7,8 +7,8 @@ args = options.parse_args_and_arch(parser)
 # Setup task
 task = tasks.setup_task(args)
 # Load model
-print('| loading model from {}'.format('checkpoints/checkpoint_best.pt'))
-models, _model_args = checkpoint_utils.load_model_ensemble(['checkpoints/checkpoint_best.pt'], task=task)
+print('| loading model from {}'.format('/Users/ashisharora/espresso/fairseq_cli/checkpoints/checkpoint_best.pt'))
+models, _model_args = checkpoint_utils.load_model_ensemble(['/Users/ashisharora/espresso/fairseq_cli/checkpoints/checkpoint_best.pt'], task=task)
 model = models[0]
 
 #while True:
