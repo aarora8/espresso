@@ -86,7 +86,15 @@ class FairseqSiameseRNN(BaseFairseqModel):
         # mini-batch. We'll define the Task in the next section, but for
         # now just know that *src_tokens* has shape `(batch, src_len)` and
         # *src_lengths* has shape `(batch)`.
-        _, bsz, max_src_len = src_tokens.size()
+        bsz, max_src_len = src_tokens.size()
+        # _, bsz, max_src_len = src_tokens.size()
+
+        src_tokens_unpacked = [
+            src_tokens[: int(bsz/3)],
+            src_tokens[int(bsz/3): int(bsz/3*2)],
+            src_tokens[int(bsz/3*2): bsz]
+        ]
+        bsz = int(bsz/3)
 
         outputs = []
         for k in range(3):  # we will use the network for three times
@@ -104,14 +112,14 @@ class FairseqSiameseRNN(BaseFairseqModel):
                 # of each input is given by *src_lengths*.
 
                 # One-hot encode a batch of input characters.
-                input = self.one_hot_inputs[src_tokens[k][:, i].long()]
+                input = self.one_hot_inputs[src_tokens_unpacked[k][:, i].long()]
 
                 # Feed the input to our RNN.
                 output, hidden = self.rnn(input, hidden)
 
             outputs.append(output)
 
-        outputs = torch.tensor(outputs)
+        outputs = torch.stack(outputs)
 
         # Return the final output state for making a prediction
         return outputs

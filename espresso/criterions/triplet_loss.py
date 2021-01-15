@@ -46,11 +46,10 @@ class TripletLossCriterion(FairseqCriterion):
 
         # https://pytorch.org/docs/stable/generated/torch.nn.TripletMarginWithDistanceLoss.html
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
-        triplet_loss = nn.TripletMarginWithDistanceLoss(distance_function=cos, margin=0.1)
+        triplet_loss = nn.TripletMarginWithDistanceLoss(distance_function=cos, margin=0.1, reduction="sum" if reduce else "none")
 
         loss = triplet_loss(
             net_output[0], net_output[1], net_output[2],  # (anchor, positive, negative)
-            reduction="sum" if reduce else "none",
         )
 
         # https://pytorch.org/docs/stable/generated/torch.nn.CosineSimilarity.html
