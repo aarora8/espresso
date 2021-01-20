@@ -281,9 +281,17 @@ class FairseqDataset(torch.utils.data.Dataset, EpochListening):
                         sent_count_st_en = sent_count_st_en - reminder_st_en
                     indices_st_en = indices[start: start + sent_count_st_en]
                     indices_same_st_en = same_classid_index_list[start: start + sent_count_st_en]
-                    print(type(indices_st_en))
-                    print(type(indices_same_st_en))
-                    batch_indices = np.concatenate((indices_st_en, indices_same_st_en))
+                    # print(type(indices_st_en))
+                    # print(type(indices_same_st_en))
+                    # batch_indices = np.concatenate((indices_st_en, indices_same_st_en))
+                    indices_diff_st_en = []
+                    for i in indices_st_en:
+                        label = classid_nparray[i]
+                        i_diff = np.random.choice(np.where(classid_nparray != label)[0])
+                        indices_diff_st_en.append(i_diff)
+                    indices_diff_st_en = np.asarray(indices_diff_st_en)
+
+                    batch_indices = np.concatenate((indices_st_en, indices_same_st_en, indices_diff_st_en))
                     # indices_st_en.extend(indices_same_st_en)
                     batches.append(batch_indices)
                     start = start + sent_count_st_en
