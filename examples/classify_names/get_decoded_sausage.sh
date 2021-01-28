@@ -19,7 +19,7 @@ mkdir -p $log
 nj=$(ls $lat_dir/lat.*.gz | wc -l)
 
 
-if [ $stage -le -5 ]; then
+if [ $stage -le -6 ]; then
   steps/nnet3/align_lats.sh --nj 32 --cmd "$train_cmd" \
     --acoustic-scale 1.0 \
     --scale-opts '--transition-scale=1.0 --self-loop-scale=1.0' \
@@ -27,11 +27,11 @@ if [ $stage -le -5 ]; then
     data/train_sp_hires data/lang_nosp_test exp/chain_a/tdnn_a_spec exp/lats
 fi
 
-if [ $stage -le -4 ]; then
+if [ $stage -le -5 ]; then
   utils/mkgraph.sh --self-loop-scale 1.0 data/lang_nosp_test exp/chain_a/tdnn_a_spec exp/chain_a/tdnn_a_spec/graph
 fi
 
-if [ $stage -le -3 ]; then
+if [ $stage -le -4 ]; then
   steps/nnet3/decode.sh --num-threads 4 --nj 20 --cmd "$decode_cmd" \
       --acwt 1.0 --post-decode-acwt 10.0 \
       --online-ivector-dir exp/nnet3_a/ivectors_train_sp_hires \
@@ -39,7 +39,7 @@ if [ $stage -le -3 ]; then
 fi
 
 
-if [ $stage -le -2 ]; then
+if [ $stage -le -3 ]; then
   steps/nnet3/align.sh --nj 32 --cmd "$train_cmd" \
       --use-gpu true \
       --scale-opts '--transition-scale=1.0 --self-loop-scale=1.0 --acoustic-scale=1.0' \
@@ -47,13 +47,19 @@ if [ $stage -le -2 ]; then
       data/train_sp_hires data/lang_nosp_test exp/chain_a/tdnn_a_spec/ exp/chain_a/tdnn_a_spec/align_train_sp
 fi
 
-if [ $stage -le -1 ]; then
+if [ $stage -le -2 ]; then
   for i in $(seq 1 $nj);
   do
       ali-to-phones --ctm-output exp/chain_a/tdnn_a_spec/final.mdl ark:"gunzip -c exp/chain_a/tdnn_a_spec/align_train_sp/ali.${i}.gz|" exp/chain_a/tdnn_a_spec/align_train_sp/${prefix}_${i}.ctm.int
       cat exp/chain_a/tdnn_a_spec/align_train_sp/${prefix}_${i}.ctm.int | int2sym.pl -f 5 data/lang_nosp_test/phones.txt > exp/chain_a/tdnn_a_spec/align_train_sp/${prefix}_${i}.ctm.words
   done
 fi
+
+if [ $stage -le -1 ]; then
+  awk '{print $1" "$1" 1"}' data/train_sp_hires/wav.scp > data/train_sp_hires/reco2file_and_channel
+  steps/get_train_ctm.sh data/train_sp_hires/ data/lang_nosp_test/ exp/chain_a/tdnn_a_spec/align_train_sp/ exp/chain_a/tdnn_a_spec/align_train_sp/
+fi
+
 exit
 if [ $stage -le 0 ] ; then
   for i in $(seq 1 $nj);
