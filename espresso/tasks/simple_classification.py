@@ -47,7 +47,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
 
         logger.info("load dataset start")
         prefix = os.path.join(self.args.data, '{}.input-label'.format(split))
-
+        print(prefix)
         # Read input sentences.
         sentences, lengths = [], []
         with open(prefix + '.input', encoding='utf-8') as file:
@@ -89,7 +89,7 @@ class SimpleClassificationTask(LegacyFairseqTask):
 
         assert len(sentences) == len(labels)
         print('| {} {} {} examples'.format(self.args.data, split, len(sentences)))
-
+        input()
         # We reuse LanguagePairDataset since classification can be modeled as a
         # sequence-to-sequence task where the target sequence has length 1.
         self.datasets[split] = LanguagePairDataset(
