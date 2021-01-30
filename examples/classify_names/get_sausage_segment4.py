@@ -95,11 +95,15 @@ for line in text_fh:
     ))
 
 
-train_text_handle = open("/Users/ashisharora/data_prep_siamese/train.input-label.input.2", 'w', encoding='utf8')
-train_text_handle2 = open("/Users/ashisharora/data_prep_siamese/train.input-label.label.2", 'w', encoding='utf8')
+train_text_handle = open("/Users/ashisharora/data_prep_siamese/train.input-label.input.3", 'w', encoding='utf8')
+train_text_handle2 = open("/Users/ashisharora/data_prep_siamese/train.input-label.label.3", 'w', encoding='utf8')
 uttword_sauseg_dict = dict()
+count_words = 0
 for recoid in sorted(utt_stend_time_ctm_dict.keys()):
     for Segment in utt_stend_time_ctm_dict[recoid]:
+        count_words += 1
+        if count_words >= 100:
+            break
         word = Segment.word
         start_frame = Segment.start
         end_frame = Segment.end
@@ -111,14 +115,25 @@ for recoid in sorted(utt_stend_time_ctm_dict.keys()):
         count_start = 0
         for time in time_list:
             start_time = time.start
+            # print(start_time)
             if start_time >= start_frame:
+                # print(start_time)
+                # print(start_frame)
                 break
             count_start += 1
         count_end = 0
         for time in time_list:
             count_end += 1
-            end_time = time.end
+            end_time = time.start
             if end_time >= end_frame:
+                # print(end_time)
+                # print(end_frame)
                 break
-        train_text_handle.write(' '.join(sauasge_list[count_start:(count_start + count_end)]) + '\n')
+        # print(word, count_start, count_end)
+        # print(recoid, start_frame, end_frame)
+        # print(time_list[count_start-1])
+        # print(time_list[count_end])
+        if count_start != 0:
+            count_start -= 1
+        train_text_handle.write(' '.join(sauasge_list[count_start:count_end]) + '\n')
         train_text_handle2.write(word + '\n')
