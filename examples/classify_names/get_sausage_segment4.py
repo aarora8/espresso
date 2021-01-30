@@ -98,12 +98,8 @@ for line in text_fh:
 train_text_handle = open("/Users/ashisharora/data_prep_siamese/train.input-label.input.3", 'w', encoding='utf8')
 train_text_handle2 = open("/Users/ashisharora/data_prep_siamese/train.input-label.label.3", 'w', encoding='utf8')
 uttword_sauseg_dict = dict()
-count_words = 0
 for recoid in sorted(utt_stend_time_ctm_dict.keys()):
     for Segment in utt_stend_time_ctm_dict[recoid]:
-        count_words += 1
-        if count_words >= 100:
-            break
         word = Segment.word
         start_frame = Segment.start
         end_frame = Segment.end
